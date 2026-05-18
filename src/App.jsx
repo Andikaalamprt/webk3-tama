@@ -388,7 +388,7 @@ export default function App() {
 
         {[
           { num: '13', label: 'Bidang Pelatihan' },
-          { num: '60+', label: 'Program Tersedia' },
+          { num: '58', label: 'Program Tersedia' },
           { num: '100%', label: 'Sertifikat Resmi' },
           { num: 'Kemnaker', label: 'Instruktur' },
         ].map((s, i) => (
