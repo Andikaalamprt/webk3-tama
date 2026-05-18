@@ -1,16 +1,53 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
 import { pelatihanData } from './data'
+import logoUrl from './img/4a90bbdd52a0d08055cfddb9fe918b57.webp'
+
 
 const DAFTAR_URL = 'https://www.geomandiri.co.id/jadwal-training/2026.html'
 
 export default function App() {
   const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('.reveal'))
+    if (!els.length) return
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) e.target.classList.add('visible')
+        }
+      },
+      { threshold: 0.15 }
+    )
+
+    els.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [active])
+
   const kategori = pelatihanData[active]
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", background: '#0f172a', minHeight: '100vh' }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
+
+        .reveal {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        .reveal.visible {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity .6s ease, transform .6s ease;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .reveal { opacity: 1; transform: none; }
+          .reveal.visible { transition: none; }
+        }
+
 
         /* NAVBAR */
         .navbar {
@@ -26,6 +63,18 @@ export default function App() {
           font-size: 1.2rem; font-weight: 800; color: #fff;
           letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px;
         }
+
+        .navbar-logo {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          object-fit: contain;
+          flex-shrink: 0;
+          background: rgba(13,148,136,0.12);
+          border: 1px solid rgba(13,148,136,0.25);
+          padding: 6px;
+        }
+
         .navbar-brand span {
           background: linear-gradient(135deg, #0d9488, #06b6d4);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -301,8 +350,9 @@ export default function App() {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-brand">
-          🎓 <span>Geo Mandiri</span> Group
+          <span>Geo Mandiri</span> Group
         </div>
+
         <div className="nav-links">
           <a href="#pelatihan">Pelatihan</a>
           <a href="#footer">Kontak</a>
@@ -311,18 +361,31 @@ export default function App() {
 
       {/* Hero */}
       <section className="hero">
+        <div className="reveal" />
+
         <div className="hero-glow" />
         <div className="hero-grid" />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="hero-badge">⚠️ Sertifikasi Resmi Kemnaker</div>
+        <div className="hero-badge">
+          <img
+            src={logoUrl}
+            alt="Logo Geo Mandiri"
+            style={{ width: 80, height: 80, borderRadius: 10, marginRight: 12, verticalAlign: 'middle', objectFit: 'contain' }}
+
+          />
+          Sertifikasi Resmi Kemnaker
+        </div>
+
           <h1>Pelatihan <em>K3 Profesional</em><br />Geo Mandiri Group</h1>
           <p>Tingkatkan kompetensi Keselamatan dan Kesehatan Kerja Anda bersama instruktur bersertifikat nasional.</p>
+
           <a className="hero-btn" href="#pelatihan">Lihat Program Pelatihan →</a>
         </div>
       </section>
 
       {/* Stats */}
-      <div className="stats">
+      <div className="stats reveal">
+
         {[
           { num: '13', label: 'Bidang Pelatihan' },
           { num: '60+', label: 'Program Tersedia' },
@@ -355,7 +418,8 @@ export default function App() {
         </div>
 
         {/* Table card */}
-        <div className="content-card" key={active}>
+        <div className="content-card reveal" key={active}>
+
           <div className="card-header">
             <div className="card-icon">{kategori.icon}</div>
             <div>
@@ -372,7 +436,7 @@ export default function App() {
                   <th>Biaya</th>
                   <th>Durasi</th>
                   <th>Instruktur</th>
-                  <th>Aksi</th>
+                  <th>Daftar</th>
                 </tr>
               </thead>
               <tbody>
@@ -402,7 +466,8 @@ export default function App() {
             { icon: '🏆', title: 'Sertifikat Resmi', desc: 'Dapatkan sertifikat yang diakui secara nasional oleh Kementerian Ketenagakerjaan.' },
             { icon: '💼', title: 'Materi Praktis', desc: 'Pembelajaran berbasis praktik lapangan dan studi kasus nyata di industri.' },
           ].map((c, i) => (
-            <div className="info-card" key={i}>
+            <div className="info-card reveal" key={i}>
+
               <div className="info-icon">{c.icon}</div>
               <h5>{c.title}</h5>
               <p>{c.desc}</p>
