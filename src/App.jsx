@@ -373,7 +373,7 @@ export default function App() {
             style={{ width: 80, height: 80, borderRadius: 10, marginRight: 12, verticalAlign: 'middle', objectFit: 'contain' }}
 
           />
-          Sertifikasi Resmi Kemnaker
+            PT.Geo Mandiri Kreasi
         </div>
 
           <h1>Pelatihan <em>K3 Profesional</em><br />Geo Mandiri Group</h1>
@@ -389,7 +389,7 @@ export default function App() {
         {[
           { num: '13', label: 'Bidang Pelatihan' },
           { num: '58', label: 'Program Tersedia' },
-          { num: '100%', label: 'Sertifikat Resmi' },
+          { num: '100%', label: 'Sertifikat Resmi Kemnaker' },
           { num: 'Kemnaker', label: 'Instruktur' },
         ].map((s, i) => (
           <div className="stat-item" key={i}>
