@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { pelatihanData } from './data'
 import logoUrl from './img/4a90bbdd52a0d08055cfddb9fe918b57.webp'
 
-
 const DAFTAR_URL = 'https://www.geomandiri.co.id/jadwal-training/2026.html'
 
 export default function App() {
