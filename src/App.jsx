@@ -1,12 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { pelatihanData } from './data'
 import logoUrl from './img/4a90bbdd52a0d08055cfddb9fe918b57.webp'
 
 const DAFTAR_URL = 'https://www.geomandiri.co.id/jadwal-training/2026.html'
 
+const DEFAULT_TITLE = 'Pelatihan K3 - Geo Mandiri Group'
+const DEFAULT_DESCRIPTION =
+  'Cari pelatihan K3 profesional dari Geo Mandiri Group. Program pelatihan keselamatan dan kesehatan kerja untuk berbagai bidang.'
+
+function normalizeKeyword(v) {
+  return String(v ?? '').trim().toLowerCase()
+}
+
 export default function App() {
   const [active, setActive] = useState(0)
+  const [keyword, setKeyword] = useState('')
+
 
   useEffect(() => {
     const els = Array.from(document.querySelectorAll('.reveal'))
@@ -26,6 +36,53 @@ export default function App() {
   }, [active])
 
   const kategori = pelatihanData[active]
+
+  const normalizedKeyword = normalizeKeyword(keyword)
+
+  const results = useMemo(() => {
+    if (!normalizedKeyword) return null
+
+    const all = pelatihanData.flatMap((k) =>
+      k.list.map((item) => ({
+        kategori: k.kategori,
+        deskripsi: k.deskripsi,
+        icon: k.icon,
+        ...item,
+      }))
+    )
+
+    return all.filter((r) => {
+      const haystack = `${r.kategori} ${r.deskripsi ?? ''} ${r.nama} ${r.instruktur}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+
+      const needle = normalizedKeyword
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+
+      return haystack.includes(needle)
+    })
+  }, [normalizedKeyword])
+
+  useEffect(() => {
+    const nextTitle = normalizedKeyword
+      ? `Cari Pelatihan K3: ${normalizedKeyword} - Geo Mandiri Group`
+      : DEFAULT_TITLE
+
+    document.title = nextTitle
+
+    const desc = document.querySelector('meta[name="description"]')
+    if (desc) {
+      desc.setAttribute(
+        'content',
+        normalizedKeyword
+          ? `Hasil pencarian pelatihan K3 untuk kata kunci: “${normalizedKeyword}”. Lihat program yang sesuai dari Geo Mandiri Group.`
+          : DEFAULT_DESCRIPTION
+      )
+    }
+  }, [normalizedKeyword])
+
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", background: '#0f172a', minHeight: '100vh' }}>
@@ -57,6 +114,86 @@ export default function App() {
           padding: 0 24px;
           display: flex; align-items: center; justify-content: space-between;
           height: 64px;
+          gap: 16px;
+        }
+
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          min-width: 260px;
+          justify-content: flex-end;
+        }
+
+        .nav-search {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 999px;
+          padding: 8px 12px;
+          min-width: 260px;
+          max-width: 380px;
+        }
+        .nav-search .search-icon {
+          color: rgba(255,255,255,0.6);
+          font-size: 0.95rem;
+          line-height: 1;
+        }
+        .nav-search input {
+          width: 100%;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: #fff;
+          font-size: .92rem;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .nav-search input::placeholder { color: rgba(255,255,255,0.45); }
+        .nav-search button {
+          border: none;
+          cursor: pointer;
+          background: rgba(13,148,136,0.14);
+          border: 1px solid rgba(13,148,136,0.24);
+          color: #2dd4bf;
+          padding: 7px 12px;
+          border-radius: 999px;
+          font-weight: 800;
+          font-size: .78rem;
+          transition: all .2s;
+          white-space: nowrap;
+        }
+        .nav-search button:hover {
+          background: rgba(13,148,136,0.22);
+          border-color: rgba(13,148,136,0.38);
+          transform: translateY(-1px);
+        }
+
+        .search-meta {
+          margin: 18px 0 6px;
+          color: rgba(255,255,255,0.75);
+          font-family: 'DM Sans', sans-serif;
+          font-size: .95rem;
+        }
+
+        .nav-search button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .search-meta .kw {
+          color: #2dd4bf;
+          font-weight: 800;
+        }
+        .no-results {
+          margin-top: 14px;
+          padding: 18px 18px;
+          border-radius: 16px;
+          border: 1px dashed rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.02);
+          color: rgba(255,255,255,0.7);
+          font-family: 'DM Sans', sans-serif;
         }
         .navbar-brand {
           font-size: 1.2rem; font-weight: 800; color: #fff;
@@ -352,11 +489,34 @@ export default function App() {
           <span>Geo Mandiri</span> Group
         </div>
 
-        <div className="nav-links">
-          <a href="#pelatihan">Pelatihan</a>
-          <a href="#footer">Kontak</a>
+        <div className="nav-right">
+          <div className="nav-search" role="search" aria-label="Cari pelatihan">
+            <div className="search-icon">⌕</div>
+            <input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Cari pelatihan (mis. SMK3, Kimia, Forklift)"
+              aria-label="Keyword pelatihan"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setKeyword((k) => k.trim())
+                const el = document.getElementById('pelatihan')
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+            >
+              Cari
+            </button>
+          </div>
+
+          <div className="nav-links">
+            <a href="#pelatihan">Pelatihan</a>
+            <a href="#footer">Kontak</a>
+          </div>
         </div>
       </nav>
+
 
       {/* Hero */}
       <section className="hero">
@@ -403,13 +563,23 @@ export default function App() {
         <p className="section-label">Program Kami</p>
         <h2 className="section-title">Pilih Bidang Pelatihan</h2>
 
+        {normalizedKeyword ? (
+          <div className="search-meta">
+            Hasil pencarian untuk <span className="kw">“{keyword.trim()}”</span>
+          </div>
+        ) : null}
+
         {/* Category tabs */}
         <div className="cat-wrap">
           {pelatihanData.map((d, i) => (
             <button
               key={d.id}
               className={`cat-btn ${i === active ? 'active' : ''}`}
-              onClick={() => setActive(i)}
+            onClick={() => {
+              setKeyword('')
+              setActive(i)
+            }}
+              aria-pressed={i === active}
             >
               {d.icon} {d.kategori}
             </button>
@@ -418,14 +588,20 @@ export default function App() {
 
         {/* Table card */}
         <div className="content-card reveal" key={active}>
-
           <div className="card-header">
-            <div className="card-icon">{kategori.icon}</div>
+            <div className="card-icon">{normalizedKeyword ? '🔎' : kategori.icon}</div>
             <div>
-              <div className="card-title">{kategori.kategori}</div>
-              <div className="card-desc">{kategori.deskripsi}</div>
+              <div className="card-title">
+                {normalizedKeyword ? 'Hasil Pencarian Pelatihan' : kategori.kategori}
+              </div>
+              <div className="card-desc">
+                {normalizedKeyword
+                  ? `Menampilkan pelatihan yang sesuai dengan kata kunci “${keyword.trim()}”.`
+                  : kategori.deskripsi}
+              </div>
             </div>
           </div>
+
           <div className="table-wrap">
             <table>
               <thead>
@@ -439,24 +615,46 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {kategori.list.map(r => (
-                  <tr key={r.no}>
-                    <td>{r.no}</td>
-                    <td><strong>{r.nama}</strong></td>
-                    <td><span className="badge-biaya">{r.biaya}</span></td>
-                    <td><span className="badge-durasi">{r.durasi}</span></td>
-                    <td>{r.instruktur}</td>
-                    <td>
-                      <a className="btn-daftar" href={DAFTAR_URL} target="_blank" rel="noreferrer">
-                        Daftar
-                      </a>
-                    </td>
-                  </tr>
-                ))}
+                {normalizedKeyword
+                  ? results?.map((r) => (
+                      <tr key={`${r.kategori}-${r.no}-${r.nama}`}>
+                        <td>{r.no}</td>
+                        <td><strong>{r.nama}</strong></td>
+                        <td><span className="badge-biaya">{r.biaya}</span></td>
+                        <td><span className="badge-durasi">{r.durasi}</span></td>
+                        <td>{r.instruktur}</td>
+                        <td>
+                          <a className="btn-daftar" href={DAFTAR_URL} target="_blank" rel="noreferrer">
+                            Daftar
+                          </a>
+                        </td>
+                      </tr>
+                    ))
+                  : kategori.list.map((r) => (
+                      <tr key={r.no}>
+                        <td>{r.no}</td>
+                        <td><strong>{r.nama}</strong></td>
+                        <td><span className="badge-biaya">{r.biaya}</span></td>
+                        <td><span className="badge-durasi">{r.durasi}</span></td>
+                        <td>{r.instruktur}</td>
+                        <td>
+                          <a className="btn-daftar" href={DAFTAR_URL} target="_blank" rel="noreferrer">
+                            Daftar
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>
+
+          {normalizedKeyword && (!results || results.length === 0) ? (
+            <div className="no-results">
+              Tidak ada pelatihan yang cocok dengan kata kunci <b>“{keyword.trim()}”</b>.
+            </div>
+          ) : null}
         </div>
+
 
         {/* Info cards */}
         <div className="info-grid">
